@@ -1,0 +1,40 @@
+{
+  "name": "neweb-server",
+  "version": "0.10.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "tsc && tslint --project tsconfig.json && jest --verbose --coverage",
+    "watch:test": "jest --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/newebio/neweb-server.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/newebio/neweb-server/issues"
+  },
+  "homepage": "https://github.com/newebio/neweb-server#readme",
+  "jest": {},
+  "devDependencies": {
+    "@types/jest": "^22.2.3",
+    "coveralls": "^3.0.1",
+    "jest": "^22.4.3",
+    "tslint": "^5.10.0",
+    "typescript": "^2.8.3"
+  },
+  "dependencies": {
+    "@types/react": "^16.3.14",
+    "@types/react-dom": "^16.0.5",
+    "@types/uid-safe": "^2.1.1",
+    "neweb-core": "^0.10.0",
+    "react": "^16.3.2",
+    "react-dom": "^16.3.2",
+    "rxjs": "^6.1.0",
+    "uid-safe": "^2.1.5",
+    "with-error": "^0.1.1"
+  }
+}
