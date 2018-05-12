@@ -8,3 +8,5 @@ var Server_1 = require("./lib/Server");
 exports.Server = Server_1.default;
 var SeancesManager_1 = require("./lib/SeancesManager");
 exports.SeancesManager = SeancesManager_1.default;
+var ClassicRouter_1 = require("./lib/ClassicRouter");
+exports.ClassicRouter = ClassicRouter_1.default;
