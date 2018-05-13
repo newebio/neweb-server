@@ -1,8 +1,9 @@
 import uid = require("uid-safe");
-import { IApplication } from "../typings";
+import { IApplication, ISessionsManager } from "../typings";
 import Seance from "./Seance";
 export interface ISeancesManagerConfig {
     app: IApplication;
+    sessionsManager: ISessionsManager;
 }
 class SeancesManager {
     protected seances: {
@@ -17,7 +18,10 @@ class SeancesManager {
         sessionId: string;
     }) {
         const seanceId = await this.generateSeanceId();
-        const seance = new Seance({ seanceId, sessionId, app: this.config.app });
+        const seance = new Seance({
+            seanceId, sessionId, app: this.config.app,
+            sessionsManager: this.config.sessionsManager,
+        });
         await seance.init();
         this.seances[seanceId] = {
             createdAt: new Date(),
@@ -31,7 +35,7 @@ class SeancesManager {
         sessionId: string;
     }) {
         return this.seances[seanceId]
-         // &&            this.seances[seanceId].sessionId === sessionId
+            // &&            this.seances[seanceId].sessionId === sessionId
             ? this.seances[seanceId].seance : null;
     }
     protected async generateSeanceId() {

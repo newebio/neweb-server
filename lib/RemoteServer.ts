@@ -24,6 +24,9 @@ class RemoteServer implements IRemoteServer {
             })),
         );
     }
+    public async navigate(params: { url: string }) {
+        await this.config.seance.navigate(params.url);
+    }
     public async dispatchControllerAction(params: IDispatchControllerActionParams) {
         await this.config.seance.dispatch(params.controllerId, params.actionName, params.args);
     }

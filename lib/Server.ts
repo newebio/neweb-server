@@ -22,12 +22,16 @@ class Server {
             return {
                 type: "NotFound",
                 body: route.text,
+                headers: {},
             };
         }
         if (route.type === "redirect") {
             return {
                 type: "Redirect",
                 body: "Moved permanently",
+                headers: {
+                    Location: route.url,
+                },
             };
         }
         const page = await pagePromise;
@@ -46,6 +50,7 @@ class Server {
         return {
             type: "Html",
             body: await template.render(),
+            headers: {},
         };
     }
     public async connectClient({ client, seanceId, request }: {

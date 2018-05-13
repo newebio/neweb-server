@@ -3,16 +3,16 @@ import querystring = require("querystring");
 import { Subject, Subscription } from "rxjs";
 import { parse } from "url";
 import { IRouter, IRouterConfig } from "./../typings";
-interface IRequest {
+export interface IRouterRequest {
     url: string;
 }
 interface IRouterNavigateParams {
-    request: IRequest;
+    request: IRouterRequest;
 }
-export type IRouteHandler = (request: IRequest, context: any) => null | IRoute;
-export type IRoutePageHandler = (request: IRequest, context: any) => IPageRoute;
+export type IRouteHandler = (request: IRouterRequest, context: any) => null | IRoute;
+export type IRoutePageHandler = (request: IRouterRequest, context: any) => IPageRoute;
 export function MatchedRoute(opts: { path: string; }, next: IRouteHandler): IRouteHandler {
-    return (request: IRequest, context) => {
+    return (request: IRouterRequest, context) => {
         const paths = opts.path.split("/");
         const regexpArr: string[] = [];
         const paramsNames: string[] = [];
@@ -43,10 +43,10 @@ export function MatchedRoute(opts: { path: string; }, next: IRouteHandler): IRou
 export function PageRouteWithParent(
     params: {
         parentFrame: string;
-        params?: (request: IRequest, context: any) => any;
+        params?: (request: IRouterRequest, context: any) => any;
     },
     next: IRouteHandler): IRouteHandler {
-    return (request: IRequest, context) => {
+    return (request: IRouterRequest, context) => {
         const route = next(request, context);
         if (!route || route.type !== "page") {
             return route;
@@ -76,7 +76,7 @@ export function PageRouteWithAfterLoad(
         afterLoad: (page: IPage) => void | Promise<void>;
     },
     handler: IRoutePageHandler): IRoutePageHandler {
-    return (request: IRequest, context: any) => {
+    return (request: IRouterRequest, context: any) => {
         const page = handler(request, context);
         page.page.afterLoad = params.afterLoad;
         return page;
@@ -84,9 +84,9 @@ export function PageRouteWithAfterLoad(
 }
 export function PageRouteByFrame(params: {
     frameName: string;
-    params?: (request: IRequest, context: any) => any;
+    params?: (request: IRouterRequest, context: any) => any;
 }): IRoutePageHandler {
-    return (request: IRequest, context: any) => {
+    return (request: IRouterRequest, context: any) => {
         const page: IPageRoute = {
             type: "page",
             page: {
@@ -103,11 +103,11 @@ export function PageRouteByFrame(params: {
 }
 export function RouteWithRedirectOn(
     params: {
-        condition: (request: IRequest, context: any) => boolean | Promise<boolean>;
-        url: (request: IRequest, context: any) => string;
+        condition: (request: IRouterRequest, context: any) => boolean | Promise<boolean>;
+        url: (request: IRouterRequest, context: any) => string;
     },
     next: IRouteHandler): IRouteHandler {
-    return (request: IRequest, context: any) => {
+    return (request: IRouterRequest, context: any) => {
         if (params.condition(request, context)) {
             return {
                 type: "redirect",
@@ -117,12 +117,12 @@ export function RouteWithRedirectOn(
         return next(request, context);
     };
 }
-class ClassicRouter implements IRouter {
+class ClassicRouter<APP, SESSION> implements IRouter {
     public route$: Subject<IRoute> = new Subject();
     protected routes: IRouteHandler[] = [];
-    protected currentRequest: IRequest;
+    protected currentRequest: IRouterRequest;
     protected urlSubscription: Subscription;
-    constructor(protected config: IRouterConfig) {
+    constructor(protected config: IRouterConfig<APP, SESSION>) {
         this.onInit();
         this.urlSubscription = this.config.seance.url$.subscribe((url) => {
             this.navigate({

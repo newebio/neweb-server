@@ -5,7 +5,7 @@ import { IRouter, IRouterConfig } from "..";
 class BaseRouter implements IRouter {
     public route$: Subject<IRoute> = new Subject();
     protected urlSubscription: Subscription;
-    constructor(protected config: IRouterConfig) {
+    constructor(protected config: IRouterConfig<any, any>) {
         this.urlSubscription = config.seance.url$.subscribe((url) => {
             if (url === "/") {
                 const route: IRoute = {

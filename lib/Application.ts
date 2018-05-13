@@ -1,5 +1,7 @@
+import { exists, readFile } from "fs";
 import { IPackInfo } from "neweb-core";
-import { join } from "path";
+import { join, resolve } from "path";
+import { promisify } from "util";
 import withError from "with-error";
 import {
     IApplication, IModulePacker, IPageTemplateClass, IPageTemplateConfig, IRouterClass, IRouterConfig,
@@ -15,6 +17,8 @@ export interface IApplicationConfig {
 }
 class Application implements IApplication {
     protected context: any;
+    protected appConfig: any;
+    protected template: null | undefined | string;
     constructor(protected config: IApplicationConfig) { }
     public async init() {
         //
@@ -25,28 +29,44 @@ class Application implements IApplication {
     public async getFrameControllerClass(frameName: string) {
         return (await this.requireModule("frames/" + frameName + "/controller")) || FrameController;
     }
-    public createPageTemplate(config: IPageTemplateConfig) {
+    public async createPageTemplate(config: IPageTemplateConfig) {
         let PageTemplateClass: IPageTemplateClass = this.requireModule("Template");
         if (!PageTemplateClass) {
             PageTemplateClass = PageTemplate;
         }
+        if (typeof (this.template) === "undefined") {
+            const templatePath = resolve(join(this.config.appDir, "template.html"));
+            this.template = await promisify(exists)(templatePath) ?
+                (await promisify(readFile)(templatePath)).toString() : null;
+        }
+        config.template = this.template;
         const template = new PageTemplateClass(config);
         return template;
     }
-    public createRouter(params: IRouterConfig) {
-        let RouterClass: IRouterClass = this.requireRouter();
+    public createRouter(params: IRouterConfig<any, any>) {
+        let RouterClass: IRouterClass<any, any> = this.requireRouter();
         if (!RouterClass) {
             RouterClass = BaseRouter;
         }
         return new RouterClass(params);
     }
-    public getContext() {
+    public async getContext() {
         if (this.context) {
             return this.context;
         }
         const ContextClass: any = this.requireModule("Context");
-        this.context = ContextClass ? new ContextClass() : {};
+        this.context = ContextClass ? new ContextClass({
+            config: await this.getConfig(),
+        }) : {};
         return this.context;
+    }
+    public async getConfig() {
+        if (typeof (this.appConfig) !== "undefined") {
+            return this.appConfig;
+        }
+        const ConfigClass = await this.requireModule("Config." + this.config.env);
+        this.appConfig = ConfigClass ? new ConfigClass() : {};
+        return this.appConfig;
     }
     public requireRouter() {
         return this.requireModule("Router");

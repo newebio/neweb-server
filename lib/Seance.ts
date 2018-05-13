@@ -1,13 +1,15 @@
-import { IPage, IPageFrame, IPageRoute, IRoute, IRoutePage } from "neweb-core";
+import { IPage, IPageFrame, IPageRoute, IRedirectRoute, IRoute, IRoutePage } from "neweb-core";
 import { Observable, Subject } from "rxjs";
-import { filter, take } from "rxjs/operators";
-import { IApplication, IController, IRouter, ISeanceContext } from "../typings";
+import { filter, skip, take } from "rxjs/operators";
+import { IApplication, IController, IRouter, ISeanceContext, ISessionsManager } from "../typings";
+import PageComparator from "./PageComparator";
 import PageCreator from "./PageCreator";
 
 export interface ISeanceConfig {
     seanceId: string;
     sessionId: string;
     app: IApplication;
+    sessionsManager: ISessionsManager;
 }
 interface IControllerItem {
     controllerId: string;
@@ -23,6 +25,7 @@ class Seance {
         controllerId: string;
         data: any;
     }> = new Subject();
+    protected currentPage: IPage | null = null;
     protected controllers: { [index: string]: IControllerItem } = {};
     constructor(protected config: ISeanceConfig) {
 
@@ -33,8 +36,9 @@ class Seance {
     public async createController(frame: IPageFrame): Promise<IController> {
         const ControllerClass = await this.config.app.getFrameControllerClass(frame.frameName);
         const controller = new ControllerClass({
+            session: await this.config.sessionsManager.getSessionContext(this.config.sessionId),
             seance: this.getContext(),
-            context: await this.config.app.getContext(),
+            app: await this.config.app.getContext(),
             params: frame.params,
         });
         controller.data$.subscribe((data) => {
@@ -50,14 +54,44 @@ class Seance {
     public async init() {
         this.router = await this.config.app.createRouter({
             seance: this.getContext(),
-            sessionId: this.config.sessionId,
+            session: await this.config.sessionsManager.getSessionContext(this.config.sessionId),
+            app: await this.config.app.getContext(),
         });
         this.route$ = this.router.route$;
         this.route$.pipe(filter((r) => r.type === "page"))
             .subscribe(async (route: IPageRoute) => {
-                const page = await this.createPage(route.page);
-                this.page$.next(page);
+                this.currentPage = this.currentPage ?
+                    await this.replacePage(this.currentPage, route.page) : await this.createPage(route.page);
+                this.page$.next(this.currentPage);
             });
+        this.route$.pipe(skip(1), filter((r) => r.type === "redirect")).subscribe((route: IRedirectRoute) => {
+            this.navigate(route.url);
+        });
+    }
+    public async replacePage(oldPage: IPage, routePage: IRoutePage): Promise<IPage> {
+        const pageCreator = new PageCreator({
+            app: this.config.app,
+        });
+        const newPage = await pageCreator.createPage(routePage);
+        const pageComparator = new PageComparator();
+        const info = pageComparator.getCompareInfo(oldPage, newPage);
+        // TODO WAIT?
+        info.frameidsForRemoving.map((id) => this.removeController(id));
+        const changeParamsPromises = info.frameForChangeParams.map((frame) => {
+            return this.controllers[frame.frameId].controller.onChangeParams(frame.params);
+        });
+        await Promise.all<any>(info.newFrames.map(async (frame) => {
+            const controller = await this.createController(frame);
+            const data = await controller.data$.pipe(take(1)).toPromise();
+            frame.data = data;
+        }).concat(changeParamsPromises));
+        return info.page;
+    }
+    public async removeController(id: string) {
+        if (this.controllers[id]) {
+            await this.controllers[id].controller.dispose();
+        }
+        delete this.controllers[id];
     }
     public async createPage(routePage: IRoutePage): Promise<IPage> {
         const pageCreator = new PageCreator({
@@ -88,6 +122,7 @@ class Seance {
     public getContext(): ISeanceContext {
         return {
             url$: this.url$,
+            navigate: this.navigate,
         };
     }
 }

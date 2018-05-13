@@ -10,7 +10,11 @@ class PageTemplate implements IPageTemplate {
     <script>${OPEN_TAG}script${CLOSE_TAG}</script>
     <script async src="/bundle.js"></script>
     </body></html>`;
-    constructor(protected config: IPageTemplateConfig) { }
+    constructor(protected config: IPageTemplateConfig) {
+        if (config.template) {
+            this.template = config.template;
+        }
+    }
     public render() {
         return this.template
             .replace(OPEN_TAG + "html" + CLOSE_TAG, this.config.body)
