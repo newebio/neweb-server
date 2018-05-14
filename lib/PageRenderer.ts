@@ -7,7 +7,7 @@ export interface IServerRendererConfig {
     app: IApplication;
 }
 class PageRenderer {
-    protected styledId = 0;
+    protected styledId: string;
     constructor(protected config: IServerRendererConfig) {
 
     }
@@ -20,7 +20,7 @@ class PageRenderer {
         return ReactDOMServer.renderToString(el);
     }
     protected async renderFrame(frame: IPageFrame, children: any) {
-        ++this.styledId;
+        this.styledId = "frame-" + frame.frameName;
         const ViewClass = await this.config.app.getFrameViewClass(frame.frameName);
         return React.createElement(StyledContext.Provider, {
             value: this.styledId,

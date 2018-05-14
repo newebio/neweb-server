@@ -1,6 +1,6 @@
 {
   "name": "neweb-server",
-  "version": "0.10.6",
+  "version": "0.10.7",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -30,7 +30,7 @@
     "@types/react": "^16.3.14",
     "@types/react-dom": "^16.0.5",
     "@types/uid-safe": "^2.1.1",
-    "neweb-core": "^0.10.1",
+    "neweb-core": "^0.10.2",
     "react": "^16.3.2",
     "react-dom": "^16.3.2",
     "rxjs": "^6.1.0",
