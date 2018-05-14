@@ -24,6 +24,9 @@ class Application implements IApplication {
     public async init() {
         //
     }
+    public getEnvironment() {
+        return this.config.env;
+    }
     public async getFrameViewClass(frameName: string) {
         return (await this.requireModule("frames/" + frameName + "/view")) || (() => null);
     }

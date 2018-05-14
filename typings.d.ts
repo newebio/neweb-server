@@ -1,6 +1,7 @@
 import { IPageMetaInfo, IRoute, ISeanceInitialInfo, IPackInfo } from "neweb-core";
 import { Observable, BehaviorSubject, Subject } from "rxjs";
 export interface IApplication {
+    getEnvironment(): string | Promise<string>;
     createRouter(params: IRouterConfig<any, any>): IRouter | Promise<IRouter>;
     getContext(): any;
     getConfig(): IApplicationConfig | Promise<IApplicationConfig>;
@@ -20,6 +21,7 @@ export interface IPageTemplateClass {
     new(config: IPageTemplateConfig): IPageTemplate;
 }
 export interface IPageTemplateConfig extends IPageMetaInfo {
+    env: string;
     body: string;
     initialInfo: ISeanceInitialInfo;
     template?: string | null;

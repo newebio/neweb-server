@@ -39,6 +39,7 @@ class Server {
         const body = await PageRenderer(this.config.app, page);
 
         const template = await this.config.app.createPageTemplate({
+            env: await this.config.app.getEnvironment(),
             title: page.title,
             meta: page.meta,
             body,
