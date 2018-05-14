@@ -30,12 +30,12 @@ class SeancesManager {
         };
         return seance;
     }
-    public async resolveSeance({ seanceId }: {
+    public async resolveSeance({ seanceId, sessionId }: {
         seanceId: string;
         sessionId: string;
     }) {
         return this.seances[seanceId]
-            // &&            this.seances[seanceId].sessionId === sessionId
+            && this.seances[seanceId].sessionId === sessionId
             ? this.seances[seanceId].seance : null;
     }
     protected async generateSeanceId() {

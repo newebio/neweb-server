@@ -4,13 +4,14 @@ import { join, resolve } from "path";
 import { promisify } from "util";
 import withError from "with-error";
 import {
-    IApplication, IModulePacker, IPageTemplateClass, IPageTemplateConfig, IRouterClass, IRouterConfig,
+    IApplication, IApplicationConfig, IModulePacker,
+    IPageTemplateClass, IPageTemplateConfig, IRouterClass, IRouterConfig,
 } from "../typings";
 import BaseRouter from "./BaseRouter";
 import FrameController from "./FrameController";
 import PageTemplate from "./PageTemplate";
 
-export interface IApplicationConfig {
+export interface IApplicationSettings {
     appDir: string;
     env: "production" | "development";
     modulePacker: IModulePacker;
@@ -19,7 +20,7 @@ class Application implements IApplication {
     protected context: any;
     protected appConfig: any;
     protected template: null | undefined | string;
-    constructor(protected config: IApplicationConfig) { }
+    constructor(protected config: IApplicationSettings) { }
     public async init() {
         //
     }
@@ -60,12 +61,16 @@ class Application implements IApplication {
         }) : {};
         return this.context;
     }
-    public async getConfig() {
+    public async getConfig(): Promise<IApplicationConfig> {
         if (typeof (this.appConfig) !== "undefined") {
             return this.appConfig;
         }
         const ConfigClass = await this.requireModule("Config." + this.config.env);
-        this.appConfig = ConfigClass ? new ConfigClass() : {};
+        this.appConfig = ConfigClass ? new ConfigClass() : {
+            session: {
+                secret: "4i6u4i856i8yni4y4",
+            },
+        };
         return this.appConfig;
     }
     public requireRouter() {

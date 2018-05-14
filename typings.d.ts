@@ -3,10 +3,18 @@ import { Observable, BehaviorSubject, Subject } from "rxjs";
 export interface IApplication {
     createRouter(params: IRouterConfig<any, any>): IRouter | Promise<IRouter>;
     getContext(): any;
+    getConfig(): IApplicationConfig | Promise<IApplicationConfig>;
     createPageTemplate(config: IPageTemplateConfig): IPageTemplate | Promise<IPageTemplate>;
     getFrameViewModulePackInfo(frameName: string): Promise<IPackInfo>;
     getFrameViewClass(frameName: string): Promise<any>;
     getFrameControllerClass(frameName: string): Promise<IControllerClass>;
+}
+export interface IApplicationConfig {
+    [index: string]: any;
+    session: {
+        secret: string;
+        ttl?: number;
+    };
 }
 export interface IPageTemplateClass {
     new(config: IPageTemplateConfig): IPageTemplate;
