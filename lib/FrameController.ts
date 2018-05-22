@@ -1,14 +1,14 @@
-import { ReplaySubject, Subscription } from "rxjs";
+import { Subscription } from "rxjs";
 import { IControllerConfig } from "..";
 
-class FrameController<PARAMS, DATA, APP, SESSION> {
-    public data$: ReplaySubject<DATA> = new ReplaySubject<DATA>(1);
+class FrameController<PARAMS, DATA extends { [index: string]: any }, APP, SESSION> {
+    public data: DATA = {} as any;
     protected subscriptions: Subscription[] = [];
     constructor(protected config: IControllerConfig<PARAMS, APP, SESSION>) {
         this.onInit();
     }
     public onInit() {
-        this.data$.next({} as any);
+        //
     }
     public dispatch(actionName: string, ...args: any[]): void | Promise<void> {
         if ((this as any)[actionName]) {

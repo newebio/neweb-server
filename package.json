@@ -1,6 +1,6 @@
 {
   "name": "neweb-server",
-  "version": "0.10.7",
+  "version": "0.10.8",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -27,12 +27,9 @@
     "typescript": "^2.8.3"
   },
   "dependencies": {
-    "@types/react": "^16.3.14",
-    "@types/react-dom": "^16.0.5",
+    "@types/node": "^10.1.2",
     "@types/uid-safe": "^2.1.1",
-    "neweb-core": "^0.10.2",
-    "react": "^16.3.2",
-    "react-dom": "^16.3.2",
+    "neweb-core": "^0.10.3",
     "rxjs": "^6.1.0",
     "uid-safe": "^2.1.5",
     "with-error": "^0.1.1"

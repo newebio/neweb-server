@@ -63,7 +63,7 @@ export interface IServerResponse {
 
 
 export interface IController {
-    data$: Observable<any>;
+    data: any;
     dispatch: (name: string, ...args: any[]) => Promise<void> | void;
     dispose: () => Promise<void> | void;
     onChangeParams: (params: any) => Promise<void>;

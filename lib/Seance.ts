@@ -23,7 +23,8 @@ class Seance {
     public page$: Subject<IPage> = new Subject();
     public controllerData$: Subject<{
         controllerId: string;
-        data: any;
+        fieldName: string;
+        value: any;
     }> = new Subject();
     protected currentPage: IPage | null = null;
     protected controllers: { [index: string]: IControllerItem } = {};
@@ -41,9 +42,20 @@ class Seance {
             app: await this.config.app.getContext(),
             params: frame.params,
         });
-        controller.data$.subscribe((data) => {
-            this.controllerData$.next({ controllerId: frame.frameId, data });
-        });
+        if (controller.data) {
+            Object.keys(controller.data).map((fieldName) => {
+                const dataField = controller.data[fieldName];
+                if (dataField instanceof Observable || typeof (dataField.subscribe) === "function") {
+                    dataField.subscribe((value: any) => {
+                        this.controllerData$.next({
+                            controllerId: frame.frameId,
+                            fieldName,
+                            value,
+                        });
+                    });
+                }
+            });
+        }
         this.controllers[frame.frameId] = {
             controller,
             controllerId: frame.frameId,
@@ -82,7 +94,7 @@ class Seance {
         });
         await Promise.all<any>(info.newFrames.map(async (frame) => {
             const controller = await this.createController(frame);
-            const data = await controller.data$.pipe(take(1)).toPromise();
+            const data = this.waitControllerData(controller);
             frame.data = data;
         }).concat(changeParamsPromises));
         return info.page;
@@ -100,7 +112,7 @@ class Seance {
         const page = await pageCreator.createPage(routePage);
         await Promise.all(page.frames.map(async (frame) => {
             const controller = await this.createController(frame);
-            const data = await controller.data$.pipe(take(1)).toPromise();
+            const data = await this.waitControllerData(controller);
             frame.data = data;
         }));
         return page;
@@ -124,6 +136,19 @@ class Seance {
             url$: this.url$,
             navigate: this.navigate,
         };
+    }
+    protected async waitControllerData(controller: IController) {
+        const data: any = {};
+        if (!controller.data) {
+            return data;
+        }
+        await Promise.all(Object.keys(controller.data).map(async (fieldName) => {
+            const field = controller.data[fieldName];
+            data[fieldName] = field instanceof Observable || typeof (field.pipe) === "function" ?
+                await field.pipe(take(1)).toPromise() :
+                field;
+        }));
+        return data;
     }
 }
 export default Seance;

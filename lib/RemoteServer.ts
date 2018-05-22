@@ -14,7 +14,8 @@ class RemoteServer implements IRemoteServer {
             seance.controllerData$.subscribe((params) => {
                 this.config.client.newControllerData({
                     controllerId: params.controllerId,
-                    data: params.data,
+                    fieldName: params.fieldName,
+                    value: params.value,
                 });
             }),
         );

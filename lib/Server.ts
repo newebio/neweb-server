@@ -1,12 +1,14 @@
-import { IRemoteClient } from "neweb-core";
+import { IPage, IRemoteClient } from "neweb-core";
 import { take } from "rxjs/operators";
 import { IApplication, IServerRequest, IServerResponse } from "../typings";
-import PageRenderer from "./PageRenderer";
 import RemoteServer from "./RemoteServer";
 import SeancesManager from "./SeancesManager";
 export interface IServerConfig {
     app: IApplication;
     seancesManager: SeancesManager;
+    pageRenderer: {
+        render: (page: IPage) => string | Promise<string>;
+    };
 }
 class Server {
     constructor(protected config: IServerConfig) { }
@@ -36,7 +38,7 @@ class Server {
         }
         const page = await pagePromise;
 
-        const body = await PageRenderer(this.config.app, page);
+        const body = await this.config.pageRenderer.render(page);
 
         const template = await this.config.app.createPageTemplate({
             env: await this.config.app.getEnvironment(),
