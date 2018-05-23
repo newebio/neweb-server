@@ -86,7 +86,7 @@ class Application implements IApplication {
             return null;
         }
         if (this.config.env === "development") {
-            delete require.cache[modulePath];
+            require.cache = {};
         }
         const moduleExports = require(modulePath);
         return moduleExports.default;

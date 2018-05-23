@@ -1,3 +1,4 @@
+import debug = require("debug");
 import { IPage, IPageFrame, IPageRoute, IRedirectRoute, IRoute, IRoutePage } from "neweb-core";
 import { Observable, Subject } from "rxjs";
 import { filter, skip, take } from "rxjs/operators";
@@ -72,9 +73,14 @@ class Seance {
         this.route$ = this.router.route$;
         this.route$.pipe(filter((r) => r.type === "page"))
             .subscribe(async (route: IPageRoute) => {
+                debug("neweb:seance")("new page", route.page);
                 this.currentPage = this.currentPage ?
                     await this.replacePage(this.currentPage, route.page) : await this.createPage(route.page);
                 this.page$.next(this.currentPage);
+            });
+        this.route$.pipe(filter((r) => r.type === "notFound"))
+            .subscribe(() => {
+                console.log("404");
             });
         this.route$.pipe(skip(1), filter((r) => r.type === "redirect")).subscribe((route: IRedirectRoute) => {
             this.navigate(route.url);
@@ -94,7 +100,7 @@ class Seance {
         });
         await Promise.all<any>(info.newFrames.map(async (frame) => {
             const controller = await this.createController(frame);
-            const data = this.waitControllerData(controller);
+            const data = await this.waitControllerData(controller);
             frame.data = data;
         }).concat(changeParamsPromises));
         return info.page;
@@ -123,6 +129,7 @@ class Seance {
             .map((controllerId) => this.controllers[controllerId].controller.dispose()));
     }
     public navigate = (url: string) => {
+        debug("neweb:seance")("navigate to", url);
         this.url$.next(url);
     }
     public dispatch = async (controllerId: string, actionName: string, args: any[]) => {
