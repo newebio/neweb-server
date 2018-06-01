@@ -46,7 +46,7 @@ class PageComparator {
         oldFramesByPaths: { [index: string]: { frameId: string } },
         newPage: IPage, frameId: string, pathName: string) {
         const newFrame = getFrameById(newPage, frameId);
-        const framePath = pathName + "/$" + newFrame.frameName;
+        const framePath = pathName + "/$" + newFrame.frameName + "#" + newFrame.frameVersion;
         const oldFrameByPath = oldFramesByPaths[framePath];
         if (oldFrameByPath) {
             const oldFrame = getFrameById(replacePageInfo.oldPage, oldFrameByPath.frameId);
@@ -88,13 +88,13 @@ class PageComparator {
 export function collectFramesByPath(page: IPage): { [index: string]: { frameId: string } } {
     const rootFrame = getFrameById(page, page.rootFrame);
     const frames = collectFramesForFrame(page, rootFrame, "_root/$" + rootFrame.frameName);
-    return { ...frames, ["_root/$" + rootFrame.frameName]: { frameId: page.rootFrame } };
+    return { ...frames, ["_root/$" + rootFrame.frameName + "#" + rootFrame.frameVersion]: { frameId: page.rootFrame } };
 }
 export function collectFramesForFrame(page: IPage, frame: IPageFrame, path: string) {
     const frames: { [index: string]: { frameId: string } } = {};
     Object.keys(frame.frames).map((placeName) => {
         const childFrame = getFrameById(page, frame.frames[placeName]);
-        const childPath = path + "/_" + placeName + "/$" + childFrame.frameName;
+        const childPath = path + "/_" + placeName + "/$" + childFrame.frameName + "#" + childFrame.frameVersion;
         frames[childPath] = { frameId: childFrame.frameId };
         collectFramesForFrame(page, childFrame, childPath);
     });

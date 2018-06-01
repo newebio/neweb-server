@@ -86,15 +86,24 @@ class Application implements IApplication {
             return null;
         }
         if (this.config.env === "development") {
-            require.cache = {};
+            this.clearAllRequireCache();
         }
         const moduleExports = require(modulePath);
         return moduleExports.default;
     }
     public async getFrameViewModulePackInfo(frameName: string): Promise<IPackInfo> {
+        this.clearAllRequireCache();
         return this.config.modulePacker.addLocalPackage(
             join(this.config.appDir, "frames", frameName, "view.js"),
         );
+    }
+    protected clearAllRequireCache() {
+        const appDir = resolve(this.config.appDir);
+        Object.keys(require.cache).map((id) => {
+            if (id.startsWith(appDir)) {
+                delete require.cache[id];
+            }
+        });
     }
 }
 export default Application;
