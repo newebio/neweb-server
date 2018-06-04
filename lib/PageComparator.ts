@@ -54,11 +54,15 @@ class PageComparator {
             if (JSON.stringify(oldFrame.params) !== JSON.stringify(newFrame.params)) {
                 replacePageInfo.frameForChangeParams.push({ frameId: oldFrame.frameId, params: newFrame.params });
             }
+            const oldPlaces = { ...oldFrame.frames };
             Object.keys(newFrame.frames).map((placeName) => {
                 childFrames[placeName] = this.processFrame(
                     replacePageInfo, oldFramesByPaths, newPage, newFrame.frames[placeName], framePath + "/"
                     + "_" + placeName);
+                delete oldPlaces[placeName];
             });
+            Object.keys(oldPlaces).map((n) => replacePageInfo.frameidsForRemoving.push(oldPlaces[n]));
+
             const xFrame: IPageFrame = {
                 frameId: oldFrame.frameId,
                 frameName: newFrame.frameName,
